@@ -8,20 +8,23 @@ const fs = require('fs');
 const express = require('express');
 const path = require('path');
 const app = express();
+const filename ="/db/db.json";
 
+const writeDb = (db)=> {fs.writeFileSync(path.join(__dirname, filename),JSON.stringify(db),(err, data) => { if (err) throw err; } ); };
 
+const dbfile = JSON.parse(fs.readFileSync(path.join(__dirname, filename),(err, data) => {
+    if (err) throw err;
+}));
 var PORT = process.env.PORT || 8080;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 var writeNote = function(res){
-    fs.readFile(path.join(__dirname, "/db/db.json"), function(err, data) {
-        if (err) throw err;
-        let notes = JSON.parse(data);
-        return res.status(200).json(notes);
-    }) 
+    return res.status(200).json(dbfile);
 };
+
+ 
 app.get("/assets/js/index.js", function(req,res){
         res.sendFile(path.join(__dirname, "/assets/js/index.js"));
 });
@@ -42,17 +45,11 @@ app.get("/api/notes", function(req, res) {
 });
 
 app.post("/api/notes", function(req, res) {
-    // let note = JSON.stringify();
-    console.log(req.body);
-    
-    // fs.appendFile(path.join(__dirname, "/db/db.json"),note,'utf8',function(err) {
-    //     if (err) {
-    //       throw err;
-    //     }
-    //     else {
-    //       writeNote(res);
-    //     }
-    // });
+    const newNote = req.body;
+    let db = dbfile;
+    db.push(newNote);
+    writeDb(db);
+    res.json(db);
 });
 
 
