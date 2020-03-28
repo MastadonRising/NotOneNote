@@ -1,22 +1,12 @@
-
-
-
-//   * DELETE `/api/notes/:id` - Should receive a query parameter containing the id of a note to delete. This means you'll need to find a way to give each note a unique `id` when it's saved. In order to delete a note, you'll need to read all notes from the `db.json` file, remove the note with the given `id` property, and then rewrite the notes to the `db.json` file.
-
-
-const fs = require('fs');
 const express = require('express');
 const Generator = require('id-generator')
 const path = require('path');
+const dbfile = require('./db/read');
+const writeDb = require('./db/write');
 const app = express();
-const filename ="/db/db.json";
 const g = new Generator()
 
-const writeDb = (db)=> {fs.writeFileSync(path.join(__dirname, filename),JSON.stringify(db),(err, data) => { if (err) throw err; } ); };
 
-const dbfile = JSON.parse(fs.readFileSync(path.join(__dirname, filename),(err, data) => {
-    if (err) throw err;
-}));
 var PORT = process.env.PORT || 8080;
 
 app.use(express.urlencoded({ extended: true }));
@@ -26,7 +16,7 @@ var writeNote = function(res){
     return res.status(200).json(dbfile);
 };
 
- 
+//  all the routes
 app.get("/assets/js/index.js", function(req,res){
         res.sendFile(path.join(__dirname, "/assets/js/index.js"));
 });
@@ -55,6 +45,19 @@ app.post("/api/notes", function(req, res) {
     res.json(db);
 });
 
+app.delete("/api/notes/:id",function(req,res){
+    let id = req.params.id;
+    let db= dbfile
+    for(let i =0; i < db.length; i++){
+        if(db[i].id === id ){
+            db.splice(i,1);
+            break;
+        }
+    }
+    res.json(dbfile);
+    writeDb(dbfile);
+    });
+   
 
 app.listen(PORT, function() {
     console.log("App listening on PORT " + PORT);
